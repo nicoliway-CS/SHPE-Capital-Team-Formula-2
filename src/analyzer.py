@@ -1,137 +1,40 @@
 import yfinance as yf
-import pandas as pd
+import json
 
-def analyze_ticker(ticker_symbol):
+def get_stock_data(ticker_symbol):
     stock = yf.Ticker(ticker_symbol)
 
-    # Check if the ticker is valid
-    if not stock.history(period="1d").empty:
-        print(f"Analyzing {ticker_symbol}...")
-    else:
-        print(f"Ticker '{ticker_symbol}' not found or no data available.")
-        return
+    if stock.history(period="1d").empty:
+        return None
 
-    print("Trailing PE:", stock.info.get("trailingPE", "N/A"))
+    income_stmt = stock.income_stmt
+    balance_sheet = stock.balance_sheet
+    cash_flow = stock.cashflow
+    
+    # Safely get values from financials, return 0 if the key doesn't exist.
+    total_revenue = income_stmt.loc['Total Revenue'].iloc[0] if 'Total Revenue' in income_stmt.index else 0
+    net_income = income_stmt.loc['Net Income'].iloc[0] if 'Net Income' in income_stmt.index else 0
+    total_equity = balance_sheet.loc['Total Stockholder Equity'].iloc[0] if 'Total Stockholder Equity' in balance_sheet.index else 0
 
-    # ----- Income Statement -----
-    income = stock.income_stmt
-    quarterly_income = stock.quarterly_income_stmt
-
-    print("\nTotal Revenue (Annual):")
-    print(income.loc["Total Revenue"])
-
-    # ----- Revenue Growth -----
-    revenue = income.loc["Total Revenue"]
-    revenue_growth_yoy = revenue.pct_change(periods=-1) * 100
-    print("\nRevenue Growth YoY (%):")
-    print(revenue_growth_yoy)
-
-    revenue_q = quarterly_income.loc["Total Revenue"]
-    revenue_growth_qoq = revenue_q.pct_change(periods=-1) * 100
-    print("\nRevenue Growth QoQ (%):")
-    print(revenue_growth_qoq)
-
-    # ----- EPS Growth -----
-    net_income = income.loc["Net Income"]
-    shares_outstanding = stock.info.get("sharesOutstanding")
-
-    if shares_outstanding and not net_income.empty:
-        eps = net_income / shares_outstanding
-        eps_growth = eps.pct_change(periods=-1) * 100
-        print("\nEPS Growth (%):")
-        print(eps_growth)
-    else:
-        print("\nEPS Growth: Data not available.")
-
-    # ----- Margins -----
-    gross_profit = income.loc["Gross Profit"]
-    operating_income = income.loc["Operating Income"]
-    revenue = income.loc["Total Revenue"]
-
-    gross_margin = (gross_profit / revenue) * 100
-    operating_margin = (operating_income / revenue) * 100
-    net_margin = (net_income / revenue) * 100
-
-    print("\nGross Margin (%):\n", gross_margin)
-    print("Operating Margin (%):\n", operating_margin)
-    print("Net Margin (%):\n", net_margin)
-
-    # ----- Balance Sheet -----
-    balance = stock.balance_sheet
-    print("\nBalance Sheet Rows:", balance.index.tolist())
-
-    # Find equity
-    possible_equity_keys = [
-        "Total Stockholder Equity",
-        "Stockholders Equity",
-        "Total Equity Gross Minority Interest"
-    ]
-    equity = None
-    for key in possible_equity_keys:
-        if key in balance.index:
-            equity = balance.loc[key]
-            break
-
-    if equity is None:
-        print("\nEquity not found in balance sheet.")
-    else:
-        roe = (net_income / equity) * 100
-        print("\nReturn on Equity (%):\n", roe)
-
-    # ----- Return on Invested Capital (ROIC) -----
-    ebit = None
-    for key in ["Operating Income", "EBIT", "Earnings Before Interest and Taxes"]:
-        if key in income.index:
-            ebit = income.loc[key]
-            break
-
-    possible_tax_keys = ["Income Tax Expense", "Tax Provision", "Provision for Income Taxes"]
-    possible_ebt_keys = ["Earnings Before Tax", "Pretax Income", "Income Before Tax"]
-
-    tax_expense = None
-    for key in possible_tax_keys:
-        if key in income.index:
-            tax_expense = income.loc[key]
-            break
-
-    ebt = None
-    for key in possible_ebt_keys:
-        if key in income.index:
-            ebt = income.loc[key]
-            break
-
-    if ebt is not None and tax_expense is not None and ebit is not None and equity is not None:
-        tax_rate = tax_expense / ebt
-        debt = balance.loc["Total Debt"] if "Total Debt" in balance.index else 0
-        cash = balance.loc["Cash"] if "Cash" in balance.index else 0
-        roic = (ebit * (1 - tax_rate)) / (debt + equity - cash) * 100
-        print("\nReturn on Invested Capital (%):\n", roic)
-    else:
-        print("\nROIC: Could not find all required fields (EBIT, tax, or pretax income).")
-
-    # ----- Debt-to-Equity Ratio -----
-    if equity is not None:
-        if "Total Debt" in balance.index:
-            debt = balance.loc["Total Debt"]
-            de_ratio = debt / equity
-            print("\nDebt to Equity Ratio:\n", de_ratio)
-        else:
-            print("\nDebt-to-Equity Ratio: 'Total Debt' not available.")
-
-    # ----- Free Cash Flow -----
-    cashflow = stock.cashflow
-    if "Total Cash From Operating Activities" in cashflow.index and "Capital Expenditures" in cashflow.index:
-        fcf = cashflow.loc["Total Cash From Operating Activities"] - cashflow.loc["Capital Expenditures"]
-        market_cap = stock.info.get("marketCap", None)
-        if market_cap:
-            fcf_yield = (fcf / market_cap) * 100
-            print("\nFree Cash Flow:\n", fcf)
-            print("Free Cash Flow Yield (%):\n", fcf_yield)
-        else:
-            print("\nFree Cash Flow Yield: Market cap not available.")
-    else:
-        print("\nFree Cash Flow data not available.")
+    data = {
+        "ticker": ticker_symbol,
+        "trailing_pe": stock.info.get("trailingPE"),
+        "forward_pe": stock.info.get("forwardPE"),
+        "price_to_book": stock.info.get("priceToBook"),
+        "price_to_sales": stock.info.get("priceToSalesTrailing12Months"),
+        "ev_to_ebitda": stock.info.get("enterpriseToEbitda"),
+        "peg_ratio": stock.info.get("pegRatio"),
+        "roe": net_income / total_equity if total_equity else 0,
+        "revenue_growth": stock.info.get("revenueGrowth"),
+        "debt_to_equity": stock.info.get("debtToEquity"),
+        "free_cash_flow": cash_flow.loc['Free Cash Flow'].iloc[0] if 'Free Cash Flow' in cash_flow.index else 0,
+    }
+    return data
 
 if __name__ == "__main__":
     ticker_to_analyze = input("Enter the stock ticker to analyze: ")
-    analyze_ticker(ticker_to_analyze)
+    stock_data = get_stock_data(ticker_to_analyze)
+    if stock_data:
+        print(json.dumps(stock_data, indent=4))
+    else:
+        print(f"Could not retrieve data for {ticker_to_analyze}")

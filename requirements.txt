@@ -1,2 +1,5 @@
 yfinance
 pandas
+scipy
+lxml
+html5lib
