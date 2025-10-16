@@ -132,6 +132,58 @@ def analyze_ticker(ticker_symbol):
     else:
         print("\nFree Cash Flow data not available.")
 
+
+    results = {
+        # --- Identification ---
+        "ticker": ticker_symbol,
+
+        # --- Valuation ---
+        "market_cap": stock.info.get("marketCap"),
+        "trailing_pe": stock.info.get("trailingPE"),
+        "forward_pe": stock.info.get("forwardPE"),
+        "peg_ratio": stock.info.get("pegRatio"),
+        "price_to_book": stock.info.get("priceToBook"),
+        "enterprise_value": stock.info.get("enterpriseValue"),
+
+        # --- Growth ---
+        "revenue_growth_yoy": revenue_growth_yoy.mean() if 'revenue_growth_yoy' in locals() else None,
+        "revenue_growth_qoq": revenue_growth_qoq.mean() if 'revenue_growth_qoq' in locals() else None,
+        "eps_growth": eps_growth.mean() if 'eps_growth' in locals() else None,
+
+        # --- Profitability ---
+        "gross_margin": gross_margin.mean() if 'gross_margin' in locals() else None,
+        "operating_margin": operating_margin.mean() if 'operating_margin' in locals() else None,
+        "net_margin": net_margin.mean() if 'net_margin' in locals() else None,
+        "roe": roe.mean() if 'roe' in locals() else None,
+        "roic": roic.mean() if 'roic' in locals() else None,
+
+        # --- Financial Health ---
+        "total_debt": float(balance.loc["Total Debt"].iloc[0]) if "Total Debt" in balance.index else None,
+        "de_ratio": de_ratio.mean() if 'de_ratio' in locals() else None,
+        "current_ratio": stock.info.get("currentRatio"),
+        "quick_ratio": stock.info.get("quickRatio"),
+
+        # --- Cash Flow ---
+        "operating_cashflow": float(cashflow.loc["Total Cash From Operating Activities"].iloc[0]) if "Total Cash From Operating Activities" in cashflow.index else None,
+        "capital_expenditures": float(cashflow.loc["Capital Expenditures"].iloc[0]) if "Capital Expenditures" in cashflow.index else None,
+        "free_cash_flow": fcf.mean() if 'fcf' in locals() else None,
+        "fcf_yield": fcf_yield.mean() if 'fcf_yield' in locals() else None,
+
+        # --- Dividend & Return ---
+        "dividend_yield": stock.info.get("dividendYield"),
+        "payout_ratio": stock.info.get("payoutRatio"),
+
+        # --- Sentiment / Misc. ---
+        "beta": stock.info.get("beta"),
+        "52_week_high": stock.info.get("fiftyTwoWeekHigh"),
+        "52_week_low": stock.info.get("fiftyTwoWeekLow"),
+        "target_mean_price": stock.info.get("targetMeanPrice"),
+        "recommendation": stock.info.get("recommendationKey"),
+    }
+
+    return results
+
+
 if __name__ == "__main__":
     ticker_to_analyze = input("Enter the stock ticker to analyze: ")
     analyze_ticker(ticker_to_analyze)
