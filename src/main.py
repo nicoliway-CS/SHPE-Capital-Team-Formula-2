@@ -17,16 +17,12 @@ def main():
     risk_level = get_risk_tolerance()
     print(f"\nRisk level selected: {risk_level}")
     
-    # 1. Get S&P 500 tickers
-    sp500_tickers = algo.get_sp500_tickers()
+    # 1. Get tickers - user can choose between default or custom
+    tickers = algo.get_user_tickers()
+    print(f"\nUsing {len(tickers)} tickers")
     
-    # --- For Testing: Reduce the number of stocks to speed up execution ---
-    # We'll process only the first 50 stocks to avoid long waits and crashes.
-    # You can comment this out to run on the full S&P 500.
-    test_tickers = sp500_tickers[:50]
-
-    # 2. Filter stocks (optional, can be expanded)
-    filtered_tickers = algo.filter_stocks(test_tickers)
+    # 2. Use tickers directly (already quality-filtered)
+    filtered_tickers = tickers
 
     # If not enough stocks meet the criteria, exit gracefully
     if len(filtered_tickers) < 10:

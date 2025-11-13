@@ -3,12 +3,35 @@ import numpy as np
 import yfinance as yf
 from scipy.optimize import minimize
 import analyzer # Import the analyzer module
+import YFin # Import the YFin module for predefined tickers and data
 
 def get_sp500_tickers():
     """Fetches the list of S&P 500 tickers from Wikipedia."""
     url = 'https://en.wikipedia.org/wiki/List_of_S%26P_500_companies'
     table = pd.read_html(url, header=0)[0]
     return table['Symbol'].tolist()
+
+def get_yfin_tickers():
+    """Returns the predefined list of tickers from YFin.py."""
+    return YFin.tickers
+
+def get_user_tickers():
+    """Prompts user to choose between default or custom tickers."""
+    print("\n--- Ticker Selection ---")
+    print("1. Use default 20 stocks (AAPL, MSFT, AMZN, etc.)")
+    print("2. Enter custom tickers")
+    
+    while True:
+        try:
+            choice = int(input("\nEnter your choice (1 or 2): "))
+            if choice == 1:
+                return YFin.tickers
+            elif choice == 2:
+                return YFin.get_custom_tickers()
+            else:
+                print("Please enter 1 or 2.")
+        except ValueError:
+            print("Invalid input. Please enter 1 or 2.")
 
 def filter_stocks(tickers):
     """Filters stocks based on fundamental criteria using the analyzer."""
@@ -37,7 +60,7 @@ def filter_stocks(tickers):
 
 def get_historical_data(tickers, period="5y"):
     """Downloads historical daily returns for a list of tickers."""
-    data = yf.download(tickers, period=period)['Adj Close']
+    data = yf.download(tickers, period=period, auto_adjust=False)['Adj Close']
     returns = data.pct_change().dropna()
     return returns
 
