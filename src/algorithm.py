@@ -2,7 +2,6 @@ import pandas as pd
 import numpy as np
 import yfinance as yf
 from scipy.optimize import minimize
-import analyzer # Import the analyzer module
 import YFin # Import the YFin module for predefined tickers and data
 
 def get_sp500_tickers():

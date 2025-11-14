@@ -44,11 +44,6 @@ def main():
     # 2. Use tickers directly (already quality-filtered)
     filtered_tickers = tickers
 
-    # If not enough stocks meet the criteria, exit gracefully
-    if len(filtered_tickers) < 10:
-        print("\nCould not find enough stocks meeting the criteria to build a portfolio. Try expanding the test list.")
-        return
-
     # 3. Get historical data for the filtered stocks
     print("Downloading historical data...")
     historical_returns = algo.get_historical_data(filtered_tickers)
