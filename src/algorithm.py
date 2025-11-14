@@ -140,3 +140,4 @@ def display_portfolio_stats(tickers, weights, returns):
     
     print("\n--- 10-Year Growth Projection ---")
     print(f"A ${initial_investment:,.2f} investment could grow to an estimated ${future_value:,.2f}.")
+    
