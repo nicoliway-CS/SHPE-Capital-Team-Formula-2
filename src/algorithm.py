@@ -15,23 +15,9 @@ def get_yfin_tickers():
     """Returns the predefined list of tickers from YFin.py."""
     return YFin.tickers
 
-def get_user_tickers():
-    """Prompts user to choose between default or custom tickers."""
-    print("\n--- Ticker Selection ---")
-    print("1. Use default 20 stocks (AAPL, MSFT, AMZN, etc.)")
-    print("2. Enter custom tickers")
-    
-    while True:
-        try:
-            choice = int(input("\nEnter your choice (1 or 2): "))
-            if choice == 1:
-                return YFin.tickers
-            elif choice == 2:
-                return YFin.get_custom_tickers()
-            else:
-                print("Please enter 1 or 2.")
-        except ValueError:
-            print("Invalid input. Please enter 1 or 2.")
+def get_custom_tickers_input():
+    """Gets custom tickers from user input via YFin module."""
+    return YFin.get_custom_tickers()
 
 def filter_stocks(tickers):
     """Filters stocks based on fundamental criteria using the analyzer."""

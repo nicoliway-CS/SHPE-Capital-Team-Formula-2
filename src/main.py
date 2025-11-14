@@ -12,13 +12,33 @@ def get_risk_tolerance():
         except ValueError:
             print("Invalid input. Please enter a number.")
 
+def get_ticker_selection():
+    """Prompts user to choose ticker source."""
+    print("\n--- Ticker Selection ---")
+    print("1. Use top 20 most popular stocks (pre-selected)")
+    print("2. Use custom tickers")
+    
+    while True:
+        try:
+            choice = int(input("\nEnter your choice (1 or 2): "))
+            if choice == 1:
+                print("\nUsing top 20 most popular stocks")
+                return algo.get_yfin_tickers()
+            elif choice == 2:
+                print("\nEnter custom tickers")
+                return algo.get_custom_tickers_input()
+            else:
+                print("Please enter 1 or 2.")
+        except ValueError:
+            print("Invalid input. Please enter 1 or 2.")
+
 def main():
     """Main function to run the portfolio optimization."""
     risk_level = get_risk_tolerance()
     print(f"\nRisk level selected: {risk_level}")
     
-    # 1. Get tickers - user can choose between default or custom
-    tickers = algo.get_user_tickers()
+    # 1. Get tickers - user can choose between preset or custom
+    tickers = get_ticker_selection()
     print(f"\nUsing {len(tickers)} tickers")
     
     # 2. Use tickers directly (already quality-filtered)
