@@ -34,8 +34,9 @@ def get_user_tickers():
             print("Invalid input. Please enter 1 or 2.")
 
 def filter_stocks(tickers):
-    """Filters stocks based on fundamental criteria using the analyzer."""
+    print("DEBUG: filter_stocks() is running with", len(tickers), "tickers")
     print(f"Fetching data and filtering from {len(tickers)} stocks... This may take a while.")
+    ...
     
     filtered_tickers = []
     for i, ticker in enumerate(tickers):
@@ -48,8 +49,7 @@ def filter_stocks(tickers):
             # Ensure data is valid and meets our criteria
             if data and \
                data.get('trailing_pe') is not None and data['trailing_pe'] > 0 and \
-               data.get('price_to_book') is not None and data['price_to_book'] < 5 and \
-               data.get('roe') is not None and data['roe'] > 0.10:
+               data.get('price_to_book') is not None and data['price_to_book'] < 15:
                 filtered_tickers.append(ticker)
         except Exception as e:
             # Silently ignore stocks that cause errors (e.g., data not available)

@@ -14,30 +14,37 @@ def get_risk_tolerance():
 
 def main():
     """Main function to run the portfolio optimization."""
+    # 1. Ask the user for their risk tolerance
     risk_level = get_risk_tolerance()
     print(f"\nRisk level selected: {risk_level}")
-    
-    # 1. Get tickers - user can choose between default or custom
-    tickers = algo.get_user_tickers()
-    print(f"\nUsing {len(tickers)} tickers")
-    
-    # 2. Use tickers directly (already quality-filtered)
-    filtered_tickers = tickers
 
-    # If not enough stocks meet the criteria, exit gracefully
-    if len(filtered_tickers) < 10:
-        print("\nCould not find enough stocks meeting the criteria to build a portfolio. Try expanding the test list.")
+    # 2. Ask the user which tickers to use (default 20 or custom)
+    print("\nGetting tickers...")
+    tickers = algo.get_user_tickers()  # from algorithm.py (uses YFin.py under the hood)
+    print(f"\nYou selected {len(tickers)} tickers: {tickers}")
+
+    # 3. Filter the tickers using fundamentals via analyzer.py
+    print("\nFiltering stocks based on fundamental criteria (P/E > 0, P/B < 15)...")
+    filtered_tickers = algo.filter_stocks(tickers)
+
+    # If no stocks pass the filter, stop and tell the user
+    if not filtered_tickers:
+        print("\nNo stocks met the fundamental criteria.")
+        print("Try again with more tickers or adjust the filter rules in algorithm.py.")
         return
 
-    # 3. Get historical data for the filtered stocks
-    print("Downloading historical data...")
+    print(f"\nProceeding with {len(filtered_tickers)} filtered stocks:")
+    print(filtered_tickers)
+
+    # 4. Download historical price data for the filtered tickers
+    print("\nDownloading historical price data...")
     historical_returns = algo.get_historical_data(filtered_tickers)
-    
-    # 4. Optimize the portfolio
-    print("Optimizing portfolio...")
+
+    # 5. Optimize the portfolio using Modern Portfolio Theory
+    print("\nOptimizing portfolio...")
     optimal_tickers, optimal_weights = algo.optimize_portfolio(historical_returns, risk_level)
-    
-    # 5. Display the results
+
+    # 6. Display the portfolio statistics and projections
     algo.display_portfolio_stats(optimal_tickers, optimal_weights, historical_returns)
 
 if __name__ == "__main__":
